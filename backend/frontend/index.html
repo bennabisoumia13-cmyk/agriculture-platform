@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plateforme Agricole - Module Financement Complet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: auto; }
+        h1 { text-align: center; color: white; margin-bottom: 20px; font-size: 2em; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn {
+            background: rgba(255,255,255,0.2); border: none; padding: 10px 18px; border-radius: 25px;
+            color: white; cursor: pointer; font-size: 14px; transition: all 0.3s;
+        }
+        .tab-btn.active { background: #27ae60; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .tab-btn:hover { background: rgba(255,255,255,0.3); }
+        .tab-content {
+            display: none; background: white; border-radius: 15px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: fadeIn 0.3s;
+        }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h2 { color: #2c3e50; margin-bottom: 15px; border-bottom: 3px solid #27ae60; padding-bottom: 8px; font-size: 1.3em; }
+        .table-container { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
+        th { background: #2c3e50; color: white; position: sticky; top: 0; }
+        tr:hover { background: #f5f5f5; }
+        button {
+            background: #27ae60; color: white; padding: 6px 12px; border: none;
+            border-radius: 4px; cursor: pointer; margin: 2px; font-size: 12px;
+        }
+        button:hover { background: #219a52; }
+        .delete-btn { background: #e74c3c; }
+        .delete-btn:hover { background: #c0392b; }
+        .edit-btn { background: #f39c12; }
+        .edit-btn:hover { background: #e67e22; }
+        .form-group { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        select, input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+        .add-section { background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 15px; }
+        .message {
+            padding: 10px; margin: 10px 0; border-radius: 8px; position: fixed;
+            top: 20px; right: 20px; z-index: 1000; animation: slideIn 0.3s;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .success { background: #d4edda; color: #155724; border-left: 4px solid #27ae60; }
+        .error { background: #f8d7da; color: #721c24; border-left: 4px solid #e74c3c; }
+        .refresh-btn { background: #3498db; margin-bottom: 10px; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 2000;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 15px; width: 400px; max-width: 90%;
+        }
+        .modal-content h3 { margin-bottom: 15px; color: #2c3e50; }
+        .modal-content input, .modal-content select { width: 100%; margin: 8px 0; padding: 10px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
+        .close-btn { background: #95a5a6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 Plateforme Agricole - Module Financement</h1>
+        <div id="message"></div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('financements')">💰 Financements</button>
+            <button class="tab-btn" onclick="showTab('credits')">🏦 Crédits Bancaires</button>
+            <button class="tab-btn" onclick="showTab('soutiens')">🤝 Soutiens Publics</button>
+            <button class="tab-btn" onclick="showTab('assurances')">🛡️ Assurances</button>
+            <button class="tab-btn" onclick="showTab('etablissements')">🏢 Établissements</button>
+            <button class="tab-btn" onclick="showTab('ecoulements')">📦 Écoulements</button>
+            <button class="tab-btn" onclick="showTab('marches')">🌍 Marchés</button>
+            <button class="tab-btn" onclick="showTab('organisations')">🤝 Organisations</button>
+        </div>
+
+        <!-- Modal pour modification -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <h3 id="modalTitle">✏️ Modifier</h3>
+                <div id="modalFields"></div>
+                <div class="modal-buttons">
+                    <button class="close-btn" onclick="closeModal()">Annuler</button>
+                    <button id="saveBtn" onclick="saveEdit()">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financements -->
+        <div id="financements" class="tab-content active">
+            <h2>💰 Gestion des Financements</h2>
+            <button class="refresh-btn" onclick="loadFinancements()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="financements-table">
+                    <thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Financement</th><th>Actions</th></tr></thead>
+                    <tbody id="financements-body"><tr><td colspan="4">Chargement...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un financement</h3>
+                <div class="form-group">
+                    <select id="financement_recensement_id"><option value="1">1 - Ben Ali Ahmed (Tiaret)</option><option value="2">2 - Zerouki Fatima (Alger)</option></select>
+                    <select id="financement_type_id"><option value="1">1 - Ressources propres</option><option value="2">2 - Crédit bancaire</option><option value="3">3 - Soutien public</option><option value="4">4 - Emprunt à un tiers</option></select>
+                    <button onclick="addFinancement()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crédits Bancaires -->
+        <div id="credits" class="tab-content">
+            <h2>🏦 Gestion des Crédits Bancaires</h2>
+            <button class="refresh-btn" onclick="loadCredits()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="credits-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Crédit</th><th>Actions</th></tr></thead>
+                <tbody id="credits-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un crédit</h3>
+                <div class="form-group">
+                    <select id="credit_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="credit_type_id"><option value="1">1 - Ettahadi (الاتحادي)</option><option value="2">2 - Classique (كلاسيكي)</option><option value="3">3 - Leasing (إيجار تمويلي)</option><option value="4">4 - Rfig (رفيق)</option></select>
+                    <button onclick="addCredit()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Soutiens Publics -->
+        <div id="soutiens" class="tab-content">
+            <h2>🤝 Gestion des Soutiens Publics</h2>
+            <button class="refresh-btn" onclick="loadSoutiens()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="soutiens-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Soutien</th><th>Actions</th></tr></thead>
+                <tbody id="soutiens-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un soutien</h3>
+                <div class="form-group">
+                    <select id="soutien_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="soutien_type_id"><option value="1">1 - Financier (مالي)</option><option value="2">2 - Matériel (عتاد)</option><option value="3">3 - Cultures (محاصيل)</option></select>
+                    <button onclick="addSoutien()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assurances -->
+        <div id="assurances" class="tab-content">
+            <h2>🛡️ Gestion des Assurances Agricoles</h2>
+            <button class="refresh-btn" onclick="loadAssurances()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="assurances-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Assurance</th><th>Actions</th></tr></thead>
+                <tbody id="assurances-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter une assurance</h3>
+                <div class="form-group">
+                    <select id="assurance_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="assurance_type_id"><option value="1">1 - Terre (الأرض)</option><option value="2">2 - Personnel (العمال)</option><option value="3">3 - Cultures (المحاصيل)</option><option value="4">4 - Bâtiments (المباني)</option><option value="5">5 - Matériels (العتاد)</option><option value="6">6 - Cheptel (المواشي)</option></select>
+                    <button onclick="addAssurance()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Établissements -->
+        <div id="etablissements" class="tab-content">
+            <h2>🏢 Gestion des Établissements de Proximité</h2>
+            <button class="refresh-btn" onclick="loadEtablissements()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="etablissements-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Établissement</th><th>Actions</th></tr></thead>
+                <tbody id="etablissements-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un établissement</h3>
+                <div class="form-group">
+                    <select id="etab_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="etab_type_id"><option value="1">1 - Banque (بنك)</option><option value="2">2 - Poste (البريد)</option><option value="3">3 - Assurances (التأمينات)</option><option value="4">4 - Fournisseur (مورد)</option><option value="5">5 - Vétérinaire (طبيب بيطري)</option><option value="6">6 - Laboratoire (مخبر)</option><option value="7">7 - BET (مكتب دراسات)</option><option value="8">8 - Coopératives (تعاونيات)</option></select>
+                    <button onclick="addEtablissement()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écoulements -->
+        <div id="ecoulements" class="tab-content">
+            <h2>📦 Gestion des Écoulements</h2>
+            <button class="refresh-btn" onclick="loadEcoulements()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="ecoulements-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Écoulement</th><th>Actions</th></tr></thead>
+                <tbody id="ecoulements-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un écoulement</h3>
+                <div class="form-group">
+                    <select id="ecoulement_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="ecoulement_type_id"><option value="1">1 - Vente sur pied (بيع على الحقل)</option><option value="2">2 - Au marché de gros (سوق الجملة)</option><option value="3">3 - Intermédiaire (وسيط)</option><option value="4">4 - Vente directe (بيع مباشر)</option></select>
+                    <button onclick="addEcoulement()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marchés -->
+        <div id="marches" class="tab-content">
+            <h2>🌍 Gestion des Marchés</h2>
+            <button class="refresh-btn" onclick="loadMarches()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="marches-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Marché</th><th>Actions</th></tr></thead>
+                <tbody id="marches-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter un marché</h3>
+                <div class="form-group">
+                    <select id="marche_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="marche_type_id"><option value="1">1 - Local (محلي)</option><option value="2">2 - National (وطني)</option><option value="3">3 - International (دولي)</option></select>
+                    <button onclick="addMarche()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Organisations -->
+        <div id="organisations" class="tab-content">
+            <h2>🤝 Gestion des Organisations Agricoles</h2>
+            <button class="refresh-btn" onclick="loadOrganisations()">🔄 Actualiser</button>
+            <div class="table-container">
+                <table id="organisations-table"><thead><tr><th>ID Recensement</th><th>Exploitant</th><th>Type Organisation</th><th>Actions</th></tr></thead>
+                <tbody id="organisations-body"><tr><td colspan="4">Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="add-section">
+                <h3>➕ Ajouter une organisation</h3>
+                <div class="form-group">
+                    <select id="org_recensement_id"><option value="1">1 - Ben Ali Ahmed</option><option value="2">2 - Zerouki Fatima</option></select>
+                    <select id="org_type_id"><option value="1">1 - Coopérative agricole (تعاونية)</option><option value="2">2 - Association professionnelle (جمعية مهنية)</option><option value="3">3 - GIC (مجموعة المصالح)</option><option value="4">4 - CWIFA (المجلس الولائي)</option><option value="5">5 - Autres associations (جمعيات أخرى)</option></select>
+                    <button onclick="addOrganisation()">Ajouter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        const recensements = {1: 'Ben Ali Ahmed', 2: 'Zerouki Fatima'};
+        let currentEdit = { table: null, id1: null, id2: null, currentValues: null };
+
+        function showMessage(msg, type) {
+            const div = document.getElementById('message');
+            div.innerHTML = `<div class="message ${type}">${msg}</div>`;
+            setTimeout(() => div.innerHTML = '', 3000);
+        }
+
+        function showModal(title, fields, saveCallback) {
+            const modal = document.getElementById('editModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalFields = document.getElementById('modalFields');
+            modalTitle.textContent = title;
+            modalFields.innerHTML = fields;
+            modal.style.display = 'flex';
+            window.saveEditCallback = saveCallback;
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveEdit() {
+            if(window.saveEditCallback) window.saveEditCallback();
+            closeModal();
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+            if(tabId === 'financements') loadFinancements();
+            else if(tabId === 'credits') loadCredits();
+            else if(tabId === 'soutiens') loadSoutiens();
+            else if(tabId === 'assurances') loadAssurances();
+            else if(tabId === 'etablissements') loadEtablissements();
+            else if(tabId === 'ecoulements') loadEcoulements();
+            else if(tabId === 'marches') loadMarches();
+            else if(tabId === 'organisations') loadOrganisations();
+        }
+
+        async function fetchData(url, callback) {
+            try {
+                const response = await fetch(url);
+                if(response.ok) callback(await response.json());
+                else callback([]);
+            } catch(e) { callback([]); }
+        }
+
+        async function postData(url, data, successMsg) {
+            try {
+                const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+                if(response.ok) { showMessage(successMsg, 'success'); return true; }
+                else { showMessage('Erreur lors de l\'opération', 'error'); return false; }
+            } catch(e) { showMessage('Erreur de connexion', 'error'); return false; }
+        }
+
+        async function putData(url, data, successMsg) {
+            try {
+                const response = await fetch(url, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+                if(response.ok) { showMessage(successMsg, 'success'); return true; }
+                else { showMessage('Erreur lors de la modification', 'error'); return false; }
+            } catch(e) { showMessage('Erreur de connexion', 'error'); return false; }
+        }
+
+        async function deleteData(url, successMsg) {
+            try {
+                const response = await fetch(url, { method: 'DELETE' });
+                if(response.ok) { showMessage(successMsg, 'success'); return true; }
+                else { showMessage('Erreur lors de la suppression', 'error'); return false; }
+            } catch(e) { showMessage('Erreur de connexion', 'error'); return false; }
+        }
+
+        // ==================== FINANCEMENTS ====================
+        async function loadFinancements() {
+            fetchData(`${API_BASE}/financements/`, data => {
+                const tbody = document.getElementById('financements-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun financement</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>${item.recensement.id}</td>
+                        <td>${item.recensement.nom_exploitant} ${item.recensement.prenom}</td>
+                        <td>${item.type_financement.nom_fr}</td>
+                        <td>
+                            <button class="edit-btn" onclick="editFinancement(${item.recensement.id}, ${item.type_financement.id}, '${item.type_financement.nom_fr}')">✏️ Modifier</button>
+                            <button class="delete-btn" onclick="deleteFinancement(${item.recensement.id}, ${item.type_financement.id})">🗑️ Supprimer</button>
+                        </td>
+                    </tr>
+                `).join('');
+            });
+        }
+        async function addFinancement() {
+            const data = { recensement_id: parseInt(document.getElementById('financement_recensement_id').value), type_financement_id: parseInt(document.getElementById('financement_type_id').value) };
+            if(await postData(`${API_BASE}/financements/`, data, 'Financement ajouté')) loadFinancements();
+        }
+        function editFinancement(recensement_id, type_id, currentName) {
+            const fields = `
+                <label>Type Financement:</label>
+                <select id="edit_type_id">
+                    <option value="1" ${type_id==1?'selected':''}>1 - Ressources propres</option>
+                    <option value="2" ${type_id==2?'selected':''}>2 - Crédit bancaire</option>
+                    <option value="3" ${type_id==3?'selected':''}>3 - Soutien public</option>
+                    <option value="4" ${type_id==4?'selected':''}>4 - Emprunt à un tiers</option>
+                </select>
+            `;
+            showModal('✏️ Modifier le financement', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_financement_id: new_type_id };
+                if(await putData(`${API_BASE}/financements/${recensement_id}/${type_id}`, data, 'Financement modifié')) loadFinancements();
+            });
+        }
+        async function deleteFinancement(recensement_id, type_id) {
+            if(confirm('Supprimer ce financement ?')) if(await deleteData(`${API_BASE}/financements/${recensement_id}/${type_id}`, 'Financement supprimé')) loadFinancements();
+        }
+
+        // ==================== CRÉDITS ====================
+        async function loadCredits() {
+            fetchData(`${API_BASE}/credits/`, data => {
+                const tbody = document.getElementById('credits-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun crédit</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `
+                    <tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_credit?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editCredit(${item.recensement_id}, ${item.type_credit_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteCredit(${item.recensement_id}, ${item.type_credit_id})">🗑️ Supprimer</button></td></tr>
+                `).join('');
+            });
+        }
+        async function addCredit() {
+            const data = { recensement_id: parseInt(document.getElementById('credit_recensement_id').value), type_credit_id: parseInt(document.getElementById('credit_type_id').value) };
+            if(await postData(`${API_BASE}/credits/`, data, 'Crédit ajouté')) loadCredits();
+        }
+        function editCredit(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Ettahadi</option><option value="2">2 - Classique</option><option value="3">3 - Leasing</option><option value="4">4 - Rfig</option></select>`;
+            showModal('✏️ Modifier le crédit', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_credit_id: new_type_id };
+                if(await putData(`${API_BASE}/credits/${recensement_id}/${type_id}`, data, 'Crédit modifié')) loadCredits();
+            });
+        }
+        async function deleteCredit(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/credits/${recensement_id}/${type_id}`, 'Crédit supprimé')) loadCredits(); }
+
+        // ==================== SOUTIENS ====================
+        async function loadSoutiens() {
+            fetchData(`${API_BASE}/soutiens/`, data => {
+                const tbody = document.getElementById('soutiens-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun soutien</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `<tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_soutien?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editSoutien(${item.recensement_id}, ${item.type_soutien_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteSoutien(${item.recensement_id}, ${item.type_soutien_id})">🗑️ Supprimer</button></td></tr>`).join('');
+            });
+        }
+        async function addSoutien() {
+            const data = { recensement_id: parseInt(document.getElementById('soutien_recensement_id').value), type_soutien_id: parseInt(document.getElementById('soutien_type_id').value) };
+            if(await postData(`${API_BASE}/soutiens/`, data, 'Soutien ajouté')) loadSoutiens();
+        }
+        function editSoutien(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Financier</option><option value="2">2 - Matériel</option><option value="3">3 - Cultures</option></select>`;
+            showModal('✏️ Modifier le soutien', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_soutien_id: new_type_id };
+                if(await putData(`${API_BASE}/soutiens/${recensement_id}/${type_id}`, data, 'Soutien modifié')) loadSoutiens();
+            });
+        }
+        async function deleteSoutien(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/soutiens/${recensement_id}/${type_id}`, 'Soutien supprimé')) loadSoutiens(); }
+
+        // ==================== ASSURANCES ====================
+        async function loadAssurances() {
+            fetchData(`${API_BASE}/assurances/`, data => {
+                const tbody = document.getElementById('assurances-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucune assurance</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `<tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_assurance?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editAssurance(${item.recensement_id}, ${item.type_assurance_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteAssurance(${item.recensement_id}, ${item.type_assurance_id})">🗑️ Supprimer</button></td></tr>`).join('');
+            });
+        }
+        async function addAssurance() {
+            const data = { recensement_id: parseInt(document.getElementById('assurance_recensement_id').value), type_assurance_id: parseInt(document.getElementById('assurance_type_id').value) };
+            if(await postData(`${API_BASE}/assurances/`, data, 'Assurance ajoutée')) loadAssurances();
+        }
+        function editAssurance(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Terre</option><option value="2">2 - Personnel</option><option value="3">3 - Cultures</option><option value="4">4 - Bâtiments</option><option value="5">5 - Matériels</option><option value="6">6 - Cheptel</option></select>`;
+            showModal('✏️ Modifier l\'assurance', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_assurance_id: new_type_id };
+                if(await putData(`${API_BASE}/assurances/${recensement_id}/${type_id}`, data, 'Assurance modifiée')) loadAssurances();
+            });
+        }
+        async function deleteAssurance(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/assurances/${recensement_id}/${type_id}`, 'Assurance supprimée')) loadAssurances(); }
+
+        // ==================== ÉTABLISSEMENTS ====================
+        async function loadEtablissements() {
+            fetchData(`${API_BASE}/etablissements/`, data => {
+                const tbody = document.getElementById('etablissements-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun établissement</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `<tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_etablissement?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editEtablissement(${item.recensement_id}, ${item.type_etablissement_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteEtablissement(${item.recensement_id}, ${item.type_etablissement_id})">🗑️ Supprimer</button></td></tr>`).join('');
+            });
+        }
+        async function addEtablissement() {
+            const data = { recensement_id: parseInt(document.getElementById('etab_recensement_id').value), type_etablissement_id: parseInt(document.getElementById('etab_type_id').value) };
+            if(await postData(`${API_BASE}/etablissements/`, data, 'Établissement ajouté')) loadEtablissements();
+        }
+        function editEtablissement(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Banque</option><option value="2">2 - Poste</option><option value="3">3 - Assurances</option><option value="4">4 - Fournisseur</option><option value="5">5 - Vétérinaire</option><option value="6">6 - Laboratoire</option><option value="7">7 - BET</option><option value="8">8 - Coopératives</option></select>`;
+            showModal('✏️ Modifier l\'établissement', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_etablissement_id: new_type_id };
+                if(await putData(`${API_BASE}/etablissements/${recensement_id}/${type_id}`, data, 'Établissement modifié')) loadEtablissements();
+            });
+        }
+        async function deleteEtablissement(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/etablissements/${recensement_id}/${type_id}`, 'Établissement supprimé')) loadEtablissements(); }
+
+        // ==================== ÉCOULEMENTS ====================
+        async function loadEcoulements() {
+            fetchData(`${API_BASE}/ecoulements/`, data => {
+                const tbody = document.getElementById('ecoulements-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun écoulement</td>\\n'; return; }
+                tbody.innerHTML = data.map(item => `tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_ecoulement?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editEcoulement(${item.recensement_id}, ${item.type_ecoulement_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteEcoulement(${item.recensement_id}, ${item.type_ecoulement_id})">🗑️ Supprimer</button></td></tr>
+                `).join('');
+            });
+        }
+        async function addEcoulement() {
+            const data = { recensement_id: parseInt(document.getElementById('ecoulement_recensement_id').value), type_ecoulement_id: parseInt(document.getElementById('ecoulement_type_id').value) };
+            if(await postData(`${API_BASE}/ecoulements/`, data, 'Écoulement ajouté')) loadEcoulements();
+        }
+        function editEcoulement(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Vente sur pied</option><option value="2">2 - Au marché de gros</option><option value="3">3 - Intermédiaire</option><option value="4">4 - Vente directe</option></select>`;
+            showModal('✏️ Modifier l\'écoulement', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_ecoulement_id: new_type_id };
+                if(await putData(`${API_BASE}/ecoulements/${recensement_id}/${type_id}`, data, 'Écoulement modifié')) loadEcoulements();
+            });
+        }
+        async function deleteEcoulement(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/ecoulements/${recensement_id}/${type_id}`, 'Écoulement supprimé')) loadEcoulements(); }
+
+        // ==================== MARCHÉS ====================
+        async function loadMarches() {
+            fetchData(`${API_BASE}/marches/`, data => {
+                const tbody = document.getElementById('marches-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucun marché</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `<tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_marche?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editMarche(${item.recensement_id}, ${item.type_marche_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteMarche(${item.recensement_id}, ${item.type_marche_id})">🗑️ Supprimer</button></td></tr>
+                `).join('');
+            });
+        }
+        async function addMarche() {
+            const data = { recensement_id: parseInt(document.getElementById('marche_recensement_id').value), type_marche_id: parseInt(document.getElementById('marche_type_id').value) };
+            if(await postData(`${API_BASE}/marches/`, data, 'Marché ajouté')) loadMarches();
+        }
+        function editMarche(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Local</option><option value="2">2 - National</option><option value="3">3 - International</option></select>`;
+            showModal('✏️ Modifier le marché', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_marche_id: new_type_id };
+                if(await putData(`${API_BASE}/marches/${recensement_id}/${type_id}`, data, 'Marché modifié')) loadMarches();
+            });
+        }
+        async function deleteMarche(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/marches/${recensement_id}/${type_id}`, 'Marché supprimé')) loadMarches(); }
+
+        // ==================== ORGANISATIONS ====================
+        async function loadOrganisations() {
+            fetchData(`${API_BASE}/organisations/`, data => {
+                const tbody = document.getElementById('organisations-body');
+                if(!data || data.length === 0) { tbody.innerHTML = '<tr><td colspan="4">Aucune organisation</td></tr>'; return; }
+                tbody.innerHTML = data.map(item => `<tr><td>${item.recensement_id}</td><td>${recensements[item.recensement_id] || ''}</td>
+                    <td>${item.type_organisation?.nom_fr || ''}</td>
+                    <td><button class="edit-btn" onclick="editOrganisation(${item.recensement_id}, ${item.type_organisation_id})">✏️ Modifier</button>
+                    <button class="delete-btn" onclick="deleteOrganisation(${item.recensement_id}, ${item.type_organisation_id})">🗑️ Supprimer</button></td></tr>
+                `).join('');
+            });
+        }
+        async function addOrganisation() {
+            const data = { recensement_id: parseInt(document.getElementById('org_recensement_id').value), type_organisation_id: parseInt(document.getElementById('org_type_id').value) };
+            if(await postData(`${API_BASE}/organisations/`, data, 'Organisation ajoutée')) loadOrganisations();
+        }
+        function editOrganisation(recensement_id, type_id) {
+            const fields = `<select id="edit_type_id"><option value="1">1 - Coopérative agricole</option><option value="2">2 - Association professionnelle</option><option value="3">3 - GIC</option><option value="4">4 - CWIFA</option><option value="5">5 - Autres associations</option></select>`;
+            showModal('✏️ Modifier l\'organisation', fields, async () => {
+                const new_type_id = parseInt(document.getElementById('edit_type_id').value);
+                const data = { recensement_id: recensement_id, type_organisation_id: new_type_id };
+                if(await putData(`${API_BASE}/organisations/${recensement_id}/${type_id}`, data, 'Organisation modifiée')) loadOrganisations();
+            });
+        }
+        async function deleteOrganisation(recensement_id, type_id) { if(confirm('Supprimer ?')) if(await deleteData(`${API_BASE}/organisations/${recensement_id}/${type_id}`, 'Organisation supprimée')) loadOrganisations(); }
+
+        loadFinancements();
+    </script>
+</body>
+</html>
