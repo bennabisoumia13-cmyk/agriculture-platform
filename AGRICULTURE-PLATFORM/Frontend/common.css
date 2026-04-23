@@ -1,0 +1,25 @@
+/* ملف مشترك لجميع صفحات التمويل */
+
+/* صورة خلفية للصفحة */
+body {
+    background-image: url('https://i.imgur.com/TwO7kmI.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* جعل البطاقات شفافة لظهور الصورة */
+.card, .top-bar, .progress-section {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(3px);
+    border-radius: 20px;
+}
+
+/* القائمة الجانبية شفافة */
+.sidebar {
+    background: rgba(26, 59, 43, 0.92);
+    backdrop-filter: blur(3px);
+    
+}

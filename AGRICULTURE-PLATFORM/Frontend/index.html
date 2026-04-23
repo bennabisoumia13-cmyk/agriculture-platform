@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - الإحصاء الفلاحي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+   <link rel="stylesheet" href="common.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; min-height: 100vh; }
+    .dashboard-container { display: flex; min-height: 100vh; }
+    .sidebar { width: 280px; background: #1a3b2b; color: white; position: fixed; height: 100vh; overflow-y: auto; }
+    .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sidebar-header h2 { color: #d4a373; font-size: 1.3em; }
+    .sidebar-menu { padding: 20px 0; }
+    .menu-item { padding: 12px 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; color: white; }
+    .menu-item i { width: 25px; color: #d4a373; }
+    .menu-item:hover { background: rgba(255,255,255,0.1); }
+    .menu-item.active { background: #d4a373; color: #1a3b2b; }
+    .menu-item.active i { color: #1a3b2b; }
+    .main-content { flex: 1; margin-right: 280px; padding: 25px; }
+    .card { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center; }
+    h1 { color: #1a3b2b; margin-bottom: 20px; }
+    p { color: #666; margin-bottom: 30px; }
+    .btn-start { background: #2d6a4f; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    .btn-start:hover { background: #1a3b2b; }
+</style>
+</head>
+<body>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header"><h2>الإحصاء الفلاحي</h2><p>2026</p></div>
+            <div class="sidebar-menu">
+                <div class="menu-item active"><i class="fas fa-home"></i> لوحة التحكم</div>
+                <div class="menu-item" onclick="window.location.href='Financement.html'"><i class="fas fa-coins"></i> التمويل</div>
+                <div class="menu-item" onclick="window.location.href='Credits.html'"><i class="fas fa-university"></i> القروض البنكية</div>
+                <div class="menu-item" onclick="window.location.href='Soutiens.html'"><i class="fas fa-hand-holding-heart"></i> الدعم العمومي</div>
+                <div class="menu-item" onclick="window.location.href='Etablissements.html'"><i class="fas fa-building"></i> مؤسسات القرب</div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="card">
+                <h1>🌾 مرحباً بك في منصة الإحصاء الفلاحي</h1>
+                <p>الرجاء اختيار القسم الذي تريد إكماله من القائمة الجانبية</p>
+                <button class="btn-start" onclick="window.location.href='Financement.html'">ابدأ التمويل</button>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>

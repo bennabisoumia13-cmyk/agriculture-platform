@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدعم العمومي - الإحصاء الفلاحي</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="common.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; min-height: 100vh; }
+        .dashboard-container { display: flex; min-height: 100vh; }
+        .sidebar { width: 280px; background: #1a3b2b; color: white; position: fixed; height: 100vh; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { color: #d4a373; font-size: 1.3em; }
+        .sidebar-header p { font-size: 0.8em; opacity: 0.8; margin-top: 5px; }
+        .sidebar-menu { padding: 20px 0; }
+        .menu-item { padding: 12px 25px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all 0.3s; color: white; }
+        .menu-item i { width: 25px; color: #d4a373; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); }
+        .menu-item.active { background: #d4a373; color: #1a3b2b; }
+        .menu-item.active i { color: #1a3b2b; }
+        .main-content { flex: 1; margin-right: 280px; padding: 25px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .page-title h1 { color: #1a3b2b; font-size: 1.5em; }
+        .page-title p { color: #666; font-size: 0.85em; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-name .name { font-weight: bold; color: #1a3b2b; }
+        .user-name .role { font-size: 0.8em; color: #666; }
+        .user-avatar { width: 45px; height: 45px; background: #1a3b2b; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #d4a373; }
+        .progress-section { background: white; border-radius: 12px; padding: 20px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .progress-label { display: flex; justify-content: space-between; margin-bottom: 10px; color: #1a3b2b; font-weight: bold; }
+        .progress-bar { background: #e0e0e0; border-radius: 10px; height: 8px; overflow: hidden; }
+        .progress-fill { background: #2d6a4f; width: 75%; height: 100%; border-radius: 10px; }
+        .card { background: white; border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .section-title { background: #2d6a4f; color: white; padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; }
+        .section-title i { margin-left: 10px; color: #d4a373; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
+        .option-card { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 12px; }
+        .option-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-color: #2d6a4f; }
+        .option-card.selected { background: #1a3b2b; border-color: #d4a373; }
+        .option-card.selected label { color: white; }
+        .option-card.selected .fr-text { color: #d4a373; }
+        .option-card input { width: 20px; height: 20px; cursor: pointer; accent-color: #2d6a4f; }
+        .option-card label { flex: 1; cursor: pointer; font-weight: 500; color: #212529; }
+        .fr-text { font-size: 0.75em; color: #888; display: block; }
+        .btn-group { display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px; flex-wrap: wrap; }
+        button { padding: 10px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        button:hover { transform: translateY(-2px); }
+        .btn-prev { background: #6c757d; color: white; }
+        .btn-save { background: #d4a373; color: #1a3b2b; }
+        .btn-next { background: #2d6a4f; color: white; }
+        .btn-quit { background: #dc3545; color: white; }
+        .message { position: fixed; top: 20px; left: 20px; padding: 12px 24px; border-radius: 10px; z-index: 1000; font-weight: bold; animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .success { background: #2d6a4f; color: white; }
+        .error { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <div class="sidebar-header"><h2>الإحصاء الفلاحي</h2><p>2026</p></div>
+            <div class="sidebar-menu">
+                <div class="menu-item" onclick="window.location.href='index.html'"><i class="fas fa-home"></i> لوحة التحكم</div>
+                <div class="menu-item" onclick="window.location.href='Financement.html'"><i class="fas fa-coins"></i> التمويل</div>
+                <div class="menu-item" onclick="window.location.href='Credits.html'"><i class="fas fa-university"></i> القروض البنكية</div>
+                <div class="menu-item active"><i class="fas fa-hand-holding-heart"></i> الدعم العمومي</div>
+                <div class="menu-item" onclick="window.location.href='Etablissements.html'"><i class="fas fa-building"></i> مؤسسات القرب</div>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="top-bar">
+                <div class="page-title"><h1>الدعم العمومي</h1><p>إدارة أنواع الدعم المتاحة</p></div>
+                <div class="user-info">
+                    <div class="user-name"><div class="name">كريم بن علي</div><div class="role">فلاح</div></div>
+                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                </div>
+            </div>
+            <div class="progress-section">
+                <div class="progress-label"><span>اكتمال الملف</span><span>75%</span></div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+            </div>
+            <div id="message"></div>
+            <div class="card">
+                <div class="section-title"><i class="fas fa-hand-holding-heart"></i> أنواع الدعم العمومي</div>
+                <div class="options-grid">
+                    <div class="option-card" data-id="1"><input type="checkbox" value="1"><label>مالي <span class="fr-text">(Financier)</span></label></div>
+                    <div class="option-card" data-id="2"><input type="checkbox" value="2"><label>عتاد <span class="fr-text">(Matériel)</span></label></div>
+                    <div class="option-card" data-id="3"><input type="checkbox" value="3"><label>محاصيل <span class="fr-text">(Cultures)</span></label></div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn-prev" onclick="window.location.href='Credits.html'"><i class="fas fa-arrow-right"></i> السابق</button>
+                    <button class="btn-save" onclick="saveDraft()"><i class="fas fa-save"></i> حفظ مسودة</button>
+                    <button class="btn-next" onclick="saveAndNext()">التالي <i class="fas fa-arrow-left"></i></button>
+                    <button class="btn-quit" onclick="quit()"><i class="fas fa-times"></i> إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let selectedSoutiens = [];
+        document.querySelectorAll('.option-card input').forEach(input => {
+            input.addEventListener('change', function() {
+                const card = this.closest('.option-card');
+                const value = parseInt(this.value);
+                if (this.checked) { selectedSoutiens.push(value); card.classList.add('selected'); }
+                else { selectedSoutiens = selectedSoutiens.filter(v => v !== value); card.classList.remove('selected'); }
+            });
+        });
+        function showMessage(msg, type) { const div = document.getElementById('message'); div.innerHTML = `<div class="message ${type}">${msg}</div>`; setTimeout(() => div.innerHTML = '', 3000); }
+        async function saveToAPI() { const recensement_id = 1; let success = true; for (const type_id of selectedSoutiens) { try { const response = await fetch(`${API_BASE}/soutiens/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ recensement_id, type_soutien_id: type_id }) }); if (!response.ok) success = false; } catch(e) { success = false; } } return success; }
+        function saveDraft() { localStorage.setItem('soutiens_draft', JSON.stringify(selectedSoutiens)); showMessage('✅ تم حفظ المسودة', 'success'); }
+        async function saveAndNext() { if(await saveToAPI()) { showMessage('✅ تم حفظ الدعم', 'success'); setTimeout(() => window.location.href = 'Etablissements.html', 1000); } else showMessage('❌ خطأ في الاتصال', 'error'); }
+        function quit() { if(confirm('هل تريد الخروج؟')) window.location.href = 'index.html'; }
+        const saved = localStorage.getItem('soutiens_draft'); if (saved) { selectedSoutiens = JSON.parse(saved); document.querySelectorAll('.option-card input').forEach(input => { if (selectedSoutiens.includes(parseInt(input.value))) { input.checked = true; input.closest('.option-card').classList.add('selected'); } }); }
+    </script>
+</body>
+</html>
